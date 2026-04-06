@@ -5,5 +5,5 @@ import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CitadelItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.createItems(Citadel.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.createItems(Citadel.MOD_ID);
 }

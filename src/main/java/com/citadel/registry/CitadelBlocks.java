@@ -5,5 +5,5 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CitadelBlocks {
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.createBlocks(Citadel.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.createBlocks(Citadel.MOD_ID);
 }
