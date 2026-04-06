@@ -1,5 +1,8 @@
 package com.citadel;
 
+import com.citadel.registry.CitadelBlocks;
+import com.citadel.registry.CitadelEntityTypes;
+import com.citadel.registry.CitadelItems;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -24,6 +27,10 @@ public class Citadel {
 
     public Citadel(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
+
+        CitadelItems.ITEMS.register(modEventBus);
+        CitadelBlocks.BLOCKS.register(modEventBus);
+        CitadelEntityTypes.ENTITY_TYPES.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
