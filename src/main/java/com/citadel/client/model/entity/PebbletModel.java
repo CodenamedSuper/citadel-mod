@@ -1,20 +1,20 @@
 package com.citadel.client.model.entity;
 
 import com.citadel.Citadel;
+import com.citadel.client.animation.PebbletAnimation;
 import com.citadel.entity.pebblet.Pebblet;
+import com.citadel.entity.pebblet.PebbletState;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.neoforged.neoforge.client.entity.animation.json.AnimationHolder;
 
 public class PebbletModel extends HierarchicalModel<Pebblet> {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(Citadel.MOD_ID, "pebblet"), "main");
-	public static final AnimationHolder WALK_ANIMATION = HierarchicalModel.getAnimation(ResourceLocation.fromNamespaceAndPath(Citadel.MOD_ID, "pebblet/walk"));
-	public static final AnimationHolder ROLL_UP_ANIMATION = HierarchicalModel.getAnimation(ResourceLocation.fromNamespaceAndPath(Citadel.MOD_ID, "pebblet/roll_up"));
-	public static final AnimationHolder ROLL_ANIMATION = HierarchicalModel.getAnimation(ResourceLocation.fromNamespaceAndPath(Citadel.MOD_ID, "pebblet/roll"));
 
 	private final ModelPart root;
 	private final ModelPart head;
@@ -43,7 +43,21 @@ public class PebbletModel extends HierarchicalModel<Pebblet> {
 	@Override
 	public void setupAnim(Pebblet entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
-		this.animateWalk(WALK_ANIMATION, limbSwing, limbSwingAmount, 8.0f, 50.0f);
+
+		if (entity.getState() == PebbletState.ROLL) {
+			this.rightLeg.visible = false;
+			this.leftLeg.visible = false;
+
+			this.animateWalk(PebbletAnimation.ROLL, limbSwing, limbSwingAmount, 8.0f, 50.0f);
+		}
+		else {
+			this.rightLeg.visible = true;
+			this.leftLeg.visible = true;
+
+			this.animateWalk(PebbletAnimation.WALK, limbSwing, limbSwingAmount, 8.0f, 50.0f);
+		}
+
+		this.animate(entity.rollUpAnimationState, PebbletAnimation.ROLL_UP, ageInTicks);
 	}
 
 	@Override
