@@ -58,6 +58,7 @@ public class PebbletModel extends HierarchicalModel<Pebblet> {
 		}
 
 		this.animate(entity.rollUpAnimationState, PebbletAnimation.ROLL_UP, ageInTicks);
+		this.animate(entity.rollOutAnimationState, PebbletAnimation.ROLL_OUT, ageInTicks);
 	}
 
 	@Override

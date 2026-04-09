@@ -1,6 +1,8 @@
 package com.citadel.entity.pebblet.ai;
 
 import com.citadel.entity.pebblet.Pebblet;
+import com.citadel.entity.pebblet.ai.behavior.RollOut;
+import com.citadel.entity.pebblet.ai.behavior.RollTowardsTarget;
 import com.citadel.entity.pebblet.ai.behavior.RollUp;
 import com.citadel.registry.CitadelActivities;
 import com.citadel.registry.CitadelMemoryModuleTypes;
@@ -34,13 +36,13 @@ public class PebbletAi {
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.ATTACK_TARGET,
-            CitadelMemoryModuleTypes.ROLL_TARGET_POS.get()
+            CitadelMemoryModuleTypes.ROLL_TARGET.get(),
+            CitadelMemoryModuleTypes.ROLL_COOLDOWN.get()
     );
 
     public static Brain<?> makeBrain(Brain<Pebblet> brain) {
         initCoreActivity(brain);
         initIdleActivity(brain);
-        initRollUpActivity(brain);
         initRollActivity(brain);
 
         brain.setCoreActivities(Set.of(Activity.CORE));
@@ -52,7 +54,9 @@ public class PebbletAi {
     private static void initCoreActivity(Brain<Pebblet> brain) {
         brain.addActivity(Activity.CORE, 0, ImmutableList.of(
                 new LookAtTargetSink(45, 90),
-                new MoveToTargetSink()
+                new MoveToTargetSink(),
+                new RollUp(),
+                new RollOut()
         ));
     }
 
@@ -77,28 +81,14 @@ public class PebbletAi {
         );
     }
 
-    private static void initRollUpActivity(Brain<Pebblet> brain) {
-        brain.addActivityWithConditions(
-                CitadelActivities.ROLL_UP.get(),
-                ImmutableList.of(
-                        Pair.of(1, new RollUp())
-                ),
-                ImmutableSet.of(
-                        Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT),
-                        Pair.of(CitadelMemoryModuleTypes.ROLL_TARGET_POS.get(), MemoryStatus.VALUE_ABSENT)
-                )
-        );
-    }
-
     private static void initRollActivity(Brain<Pebblet> brain) {
         brain.addActivityWithConditions(
                 CitadelActivities.ROLL.get(),
                 ImmutableList.of(
-
+                    Pair.of(1, new RollTowardsTarget())
                 ),
                 ImmutableSet.of(
-                        Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT),
-                        Pair.of(CitadelMemoryModuleTypes.ROLL_TARGET_POS.get(), MemoryStatus.VALUE_PRESENT)
+                        Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT)
                 )
         );
     }
@@ -106,7 +96,6 @@ public class PebbletAi {
     public static void updateActivity(Pebblet entity) {
         entity.getBrain().setActiveActivityToFirstValid(List.of(
                 CitadelActivities.ROLL.get(),
-                CitadelActivities.ROLL_UP.get(),
                 Activity.IDLE
         ));
     }

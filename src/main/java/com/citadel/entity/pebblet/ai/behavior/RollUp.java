@@ -19,7 +19,9 @@ public class RollUp extends Behavior<Pebblet> {
         super(ImmutableMap.of(
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
-                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT
+                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
+                CitadelMemoryModuleTypes.ROLL_TARGET.get(), MemoryStatus.VALUE_ABSENT,
+                CitadelMemoryModuleTypes.ROLL_COOLDOWN.get(), MemoryStatus.VALUE_ABSENT
         ), DURATION);
     }
 
@@ -40,21 +42,18 @@ public class RollUp extends Behavior<Pebblet> {
     }
 
     @Override
-    protected void tick(ServerLevel level, Pebblet entity, long gameTime) {
-        var brain = entity.getBrain();
-
-        if (this.targetTracker != null) {
-            brain.setMemory(CitadelMemoryModuleTypes.ROLL_TARGET_POS.get(), targetTracker.currentBlockPosition());
-        }
-    }
-
-    @Override
     protected void stop(ServerLevel level, Pebblet entity, long gameTime) {
         var brain = entity.getBrain();
 
+        brain.setMemory(CitadelMemoryModuleTypes.ROLL_TARGET.get(), this.targetTracker);
         brain.eraseMemory(MemoryModuleType.LOOK_TARGET);
-
+        
         entity.setState(PebbletState.ROLL);
+    }
+
+    @Override
+    protected boolean checkExtraStartConditions(ServerLevel level, Pebblet entity) {
+        return entity.onGround() && entity.getState() == PebbletState.IDLE;
     }
 
     @Override

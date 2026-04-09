@@ -26,6 +26,7 @@ public class Pebblet extends PathfinderMob {
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(Pebblet.class, EntityDataSerializers.INT);
 
     public final AnimationState rollUpAnimationState = new AnimationState();
+    public final AnimationState rollOutAnimationState = new AnimationState();
 
     public Pebblet(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -73,14 +74,18 @@ public class Pebblet extends PathfinderMob {
 
             switch (state) {
                 case ROLL_UP -> {
+                    this.rollOutAnimationState.stop();
                     this.rollUpAnimationState.startIfStopped(this.tickCount);
                 }
                 case ROLL -> {
+                    this.rollOutAnimationState.stop();
                     this.rollUpAnimationState.start(this.tickCount);
                     this.rollUpAnimationState.fastForward(ROLL_UP_ANIMATION_DURATION, 1.0f);
                 }
-                default -> {
+                case ROLL_OUT -> {
+                    this.rollUpAnimationState.stop();
 
+                    this.rollOutAnimationState.startIfStopped(this.tickCount);
                 }
             }
         }
@@ -118,5 +123,9 @@ public class Pebblet extends PathfinderMob {
                 .add(Attributes.MOVEMENT_SPEED, 0.12f)
                 .add(Attributes.ARMOR, 2)
                 .add(Attributes.FOLLOW_RANGE, 32);
+    }
+
+    public void addDe(double v, float v1, double v2) {
+
     }
 }
