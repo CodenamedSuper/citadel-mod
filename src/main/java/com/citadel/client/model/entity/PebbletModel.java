@@ -48,7 +48,7 @@ public class PebbletModel extends HierarchicalModel<Pebblet> {
 			this.rightLeg.visible = false;
 			this.leftLeg.visible = false;
 
-			this.animateWalk(PebbletAnimation.ROLL, limbSwing, limbSwingAmount, 8.0f, 50.0f);
+			this.animateWalk(PebbletAnimation.ROLL, limbSwing, limbSwingAmount, 4.0f, 20.0f);
 		}
 		else {
 			this.rightLeg.visible = true;

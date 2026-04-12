@@ -2,6 +2,7 @@ package com.citadel.entity.pebblet;
 
 import com.citadel.entity.pebblet.ai.PebbletAi;
 import com.mojang.serialization.Dynamic;
+import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -16,12 +17,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
 public class Pebblet extends PathfinderMob {
     public static final int ROLL_UP_ANIMATION_DURATION = 10;
+    public static final float FRICTION_MODIFIER = 0.75f;
 
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(Pebblet.class, EntityDataSerializers.INT);
 
@@ -47,6 +50,11 @@ public class Pebblet extends PathfinderMob {
     @Override
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         return PebbletAi.makeBrain(this.brainProvider().makeBrain(dynamic));
+    }
+
+    @Override
+    public Vec3 handleRelativeFrictionAndCalculateMovement(Vec3 deltaMovement, float friction) {
+        return super.handleRelativeFrictionAndCalculateMovement(deltaMovement, friction);
     }
 
     @Override
@@ -79,6 +87,7 @@ public class Pebblet extends PathfinderMob {
                 }
                 case ROLL -> {
                     this.rollOutAnimationState.stop();
+
                     this.rollUpAnimationState.start(this.tickCount);
                     this.rollUpAnimationState.fastForward(ROLL_UP_ANIMATION_DURATION, 1.0f);
                 }
@@ -117,15 +126,19 @@ public class Pebblet extends PathfinderMob {
         return this.getTargetFromBrain();
     }
 
+    @Override
+    protected void sendDebugPackets() {
+        super.sendDebugPackets();
+
+        DebugPackets.sendEntityBrain(this);
+    }
+
     public static AttributeSupplier.Builder createPebbletAttributes() {
         return createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0d)
                 .add(Attributes.MOVEMENT_SPEED, 0.12f)
+                .add(Attributes.ATTACK_DAMAGE, 6)
                 .add(Attributes.ARMOR, 2)
                 .add(Attributes.FOLLOW_RANGE, 32);
-    }
-
-    public void addDe(double v, float v1, double v2) {
-
     }
 }

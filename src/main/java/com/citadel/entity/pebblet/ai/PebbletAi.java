@@ -1,6 +1,8 @@
 package com.citadel.entity.pebblet.ai;
 
 import com.citadel.entity.pebblet.Pebblet;
+import com.citadel.entity.pebblet.PebbletState;
+import com.citadel.entity.pebblet.ai.behavior.SetRollTargetFromAttackTarget;
 import com.citadel.entity.pebblet.ai.behavior.RollOut;
 import com.citadel.entity.pebblet.ai.behavior.RollTowardsTarget;
 import com.citadel.entity.pebblet.ai.behavior.RollUp;
@@ -9,7 +11,9 @@ import com.citadel.registry.CitadelMemoryModuleTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -43,6 +47,7 @@ public class PebbletAi {
     public static Brain<?> makeBrain(Brain<Pebblet> brain) {
         initCoreActivity(brain);
         initIdleActivity(brain);
+        initFightActivity(brain);
         initRollActivity(brain);
 
         brain.setCoreActivities(Set.of(Activity.CORE));
@@ -52,10 +57,19 @@ public class PebbletAi {
     }
 
     private static void initCoreActivity(Brain<Pebblet> brain) {
+        var moveToTarget = new MoveToTargetSink() {
+            @Override
+            protected boolean checkExtraStartConditions(ServerLevel level, Mob owner) {
+                if (owner instanceof Pebblet pebblet) {
+
+                }
+                return super.checkExtraStartConditions(level, owner);
+            }
+        };
+
         brain.addActivity(Activity.CORE, 0, ImmutableList.of(
                 new LookAtTargetSink(45, 90),
-                new MoveToTargetSink(),
-                new RollUp(),
+                moveToTarget,
                 new RollOut()
         ));
     }
@@ -81,11 +95,12 @@ public class PebbletAi {
         );
     }
 
-    private static void initRollActivity(Brain<Pebblet> brain) {
+    private static void initFightActivity(Brain<Pebblet> brain) {
         brain.addActivityWithConditions(
-                CitadelActivities.ROLL.get(),
+                Activity.FIGHT,
                 ImmutableList.of(
-                    Pair.of(1, new RollTowardsTarget())
+                        Pair.of(1, new SetRollTargetFromAttackTarget()),
+                        Pair.of(2, StopAttackingIfTargetInvalid.create())
                 ),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT)
@@ -93,9 +108,24 @@ public class PebbletAi {
         );
     }
 
+    private static void initRollActivity(Brain<Pebblet> brain) {
+        brain.addActivityWithConditions(
+                CitadelActivities.ROLL.get(),
+                ImmutableList.of(
+                        Pair.of(1, new RollTowardsTarget()),
+                        Pair.of(2, new RollUp())
+                ),
+                ImmutableSet.of(
+                        Pair.of(CitadelMemoryModuleTypes.ROLL_TARGET.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(CitadelMemoryModuleTypes.ROLL_COOLDOWN.get(), MemoryStatus.VALUE_ABSENT)
+                )
+        );
+    }
+
     public static void updateActivity(Pebblet entity) {
         entity.getBrain().setActiveActivityToFirstValid(List.of(
                 CitadelActivities.ROLL.get(),
+                Activity.FIGHT,
                 Activity.IDLE
         ));
     }

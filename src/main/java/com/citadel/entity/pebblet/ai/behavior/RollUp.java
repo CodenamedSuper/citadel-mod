@@ -6,48 +6,27 @@ import com.citadel.registry.CitadelMemoryModuleTypes;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 public class RollUp extends Behavior<Pebblet> {
     private static final int DURATION = 10;
 
-    private EntityTracker targetTracker = null;
-
     public RollUp() {
         super(ImmutableMap.of(
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
-                MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
-                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
-                CitadelMemoryModuleTypes.ROLL_TARGET.get(), MemoryStatus.VALUE_ABSENT,
+                CitadelMemoryModuleTypes.ROLL_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                 CitadelMemoryModuleTypes.ROLL_COOLDOWN.get(), MemoryStatus.VALUE_ABSENT
         ), DURATION);
     }
 
     @Override
     protected void start(ServerLevel level, Pebblet entity, long gameTime) {
-        var brain = entity.getBrain();
-        var attackTarget = brain.getMemory(MemoryModuleType.ATTACK_TARGET);
-
-        if (attackTarget.isPresent()) {
-            this.targetTracker = new EntityTracker(attackTarget.get(), false);
-
-            brain.setMemory(MemoryModuleType.LOOK_TARGET, this.targetTracker);
-        }
-
-        brain.eraseMemory(MemoryModuleType.WALK_TARGET);
-
         entity.setState(PebbletState.ROLL_UP);
     }
 
     @Override
     protected void stop(ServerLevel level, Pebblet entity, long gameTime) {
-        var brain = entity.getBrain();
-
-        brain.setMemory(CitadelMemoryModuleTypes.ROLL_TARGET.get(), this.targetTracker);
-        brain.eraseMemory(MemoryModuleType.LOOK_TARGET);
-        
         entity.setState(PebbletState.ROLL);
     }
 
