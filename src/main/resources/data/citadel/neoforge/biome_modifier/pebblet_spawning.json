@@ -1,0 +1,10 @@
+{
+    "type": "neoforge:add_spawns",
+    "biomes": "#citadel:spawns_pebblets",
+    "spawners": {
+        "type": "citadel:pebblet",
+        "weight": 10,
+        "minCount": 3,
+        "maxCount": 5
+    }
+}

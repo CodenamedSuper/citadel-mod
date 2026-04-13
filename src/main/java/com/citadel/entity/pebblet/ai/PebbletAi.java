@@ -8,9 +8,7 @@ import com.citadel.registry.CitadelSensorTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -56,19 +54,9 @@ public class PebbletAi {
     }
 
     private static void initCoreActivity(Brain<Pebblet> brain) {
-        var moveToTarget = new MoveToTargetSink() {
-            @Override
-            protected boolean checkExtraStartConditions(ServerLevel level, Mob owner) {
-                if (owner instanceof Pebblet pebblet) {
-
-                }
-                return super.checkExtraStartConditions(level, owner);
-            }
-        };
-
         brain.addActivity(Activity.CORE, 0, ImmutableList.of(
                 new LookAtTargetSink(45, 90),
-                moveToTarget,
+                new MoveToTargetSink(),
                 new RollOut()
         ));
     }
@@ -100,9 +88,8 @@ public class PebbletAi {
         brain.addActivityWithConditions(
                 Activity.FIGHT,
                 ImmutableList.of(
-                        Pair.of(1, new SetRollTargetFromAttackTarget()),
-                        Pair.of(2, new MoveTowardsAttackTargetIfOutsideRollDistance()),
-                        Pair.of(3, StopAttackingIfTargetInvalid.create())
+                        Pair.of(0, new PrepareRollTargetFromAttackTarget()),
+                        Pair.of(1, StopAttackingIfTargetInvalid.create())
                 ),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT)

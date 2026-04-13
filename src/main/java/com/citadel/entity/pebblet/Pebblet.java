@@ -2,8 +2,10 @@ package com.citadel.entity.pebblet;
 
 import com.citadel.entity.pebblet.ai.PebbletAi;
 import com.mojang.serialization.Dynamic;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -12,15 +14,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.AnimationState;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -33,7 +34,6 @@ public class Pebblet extends PathfinderMob {
     private static final int ROLLING_PARTICLES_COUNT = 30;
 
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(Pebblet.class, EntityDataSerializers.INT);
-
 
     public final AnimationState rollUpAnimationState = new AnimationState();
     public final AnimationState rollOutAnimationState = new AnimationState();
@@ -50,6 +50,22 @@ public class Pebblet extends PathfinderMob {
     }
 
     @Override
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+
+        compound.putInt("state", this.getState().getId());
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+
+        PebbletState state = PebbletState.BY_ID.apply(compound.getInt("state"));
+
+        this.setState(state);
+    }
+
+    @Override
     protected Brain.Provider<Pebblet> brainProvider() {
         return Brain.provider(PebbletAi.MEMORIES, PebbletAi.SENSORS);
     }
@@ -57,11 +73,6 @@ public class Pebblet extends PathfinderMob {
     @Override
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
         return PebbletAi.makeBrain(this.brainProvider().makeBrain(dynamic));
-    }
-
-    @Override
-    public Vec3 handleRelativeFrictionAndCalculateMovement(Vec3 deltaMovement, float friction) {
-        return super.handleRelativeFrictionAndCalculateMovement(deltaMovement, friction);
     }
 
     @Override
@@ -180,5 +191,15 @@ public class Pebblet extends PathfinderMob {
                 .add(Attributes.ATTACK_DAMAGE, 6)
                 .add(Attributes.ARMOR, 2)
                 .add(Attributes.FOLLOW_RANGE, 32);
+    }
+
+    public static boolean checkPebbletSpawnRules(EntityType<Pebblet> entityType, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        if (pos.getY() >= level.getSeaLevel()) {
+            return false;
+        }
+
+        int maxLocalRawBrightness = level.getMaxLocalRawBrightness(pos);
+
+        return maxLocalRawBrightness > random.nextInt(4) ? false : checkMobSpawnRules(entityType, level, spawnType, pos, random);
     }
 }

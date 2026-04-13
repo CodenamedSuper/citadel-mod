@@ -6,7 +6,9 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -20,10 +22,10 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 
 import java.util.Optional;
 
-public class SetRollTargetFromAttackTarget extends Behavior<Pebblet> {
-    public static final float MAX_ROLL_DISTANCE = 12.0f;
+public class PrepareRollTargetFromAttackTarget extends Behavior<Pebblet> {
+    public static final float ROLL_DISTANCE = 12.0f;
 
-    public SetRollTargetFromAttackTarget() {
+    public PrepareRollTargetFromAttackTarget() {
         super(ImmutableMap.of(
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
@@ -31,29 +33,32 @@ public class SetRollTargetFromAttackTarget extends Behavior<Pebblet> {
                 MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT,
                 CitadelMemoryModuleTypes.ROLL_TARGET.get(), MemoryStatus.VALUE_ABSENT,
                 CitadelMemoryModuleTypes.ROLL_COOLDOWN.get(), MemoryStatus.VALUE_ABSENT
-        ));
+        ), 100);
     }
 
     @Override
-    protected void start(ServerLevel level, Pebblet entity, long gameTime) {
-        var brain = entity.getBrain();
+    protected void tick(ServerLevel level, Pebblet owner, long gameTime) {
+        var brain = owner.getBrain();
 
         Optional<LivingEntity> attackTargetMemory = brain.getMemory(MemoryModuleType.ATTACK_TARGET);
         if (attackTargetMemory.isEmpty()) return;
 
+        Optional<NearestVisibleLivingEntities> nearestVisibleLivingEntitiesMemory = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+        if (nearestVisibleLivingEntitiesMemory.isEmpty()) return;
+
         LivingEntity target = attackTargetMemory.get();
+        NearestVisibleLivingEntities visibleEntities = nearestVisibleLivingEntitiesMemory.get();
 
-        entity.getNavigation().stop();
-
-        brain.eraseMemory(MemoryModuleType.WALK_TARGET);
-        brain.setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(
-                target,
-                true
-        ));
-        this.tryGetRollTarget(entity, target, level);
+        if (visibleEntities.contains(target) && owner.distanceTo(target) < ROLL_DISTANCE) {
+            brain.eraseMemory(MemoryModuleType.WALK_TARGET);
+            this.determineRollTarget(owner, target, level);
+        }
+        else {
+            BehaviorUtils.setWalkAndLookTargetMemories(owner, target, 2.0f, 0);
+        }
     }
 
-    private void tryGetRollTarget(Pebblet owner, LivingEntity target, ServerLevel level) {
+    private void determineRollTarget(Pebblet owner, LivingEntity target, ServerLevel level) {
         var brain = owner.getBrain();
 
         Optional<NearestVisibleLivingEntities> nearestVisibleLivingEntitiesMemory = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
@@ -77,7 +82,7 @@ public class SetRollTargetFromAttackTarget extends Behavior<Pebblet> {
 
         BlockHitResult result = level.clip(new ClipContext(
                 owner.position(),
-                owner.position().add(direction.scale(MAX_ROLL_DISTANCE)),
+                owner.position().add(direction.scale(ROLL_DISTANCE)),
                 ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.ANY,
                 CollisionContext.empty()
@@ -100,5 +105,10 @@ public class SetRollTargetFromAttackTarget extends Behavior<Pebblet> {
         return owner.getNavigation().isStableDestination(pos) && owner.getPathfindingMalus(
                 WalkNodeEvaluator.getPathTypeStatic(owner, pos)
         ) == 0;
+    }
+
+    @Override
+    protected boolean canStillUse(ServerLevel level, Pebblet entity, long gameTime) {
+        return !entity.getBrain().hasMemoryValue(CitadelMemoryModuleTypes.ROLL_TARGET.get());
     }
 }
