@@ -4,6 +4,7 @@ import com.citadel.entity.pebblet.Pebblet;
 import com.citadel.entity.pebblet.ai.behavior.*;
 import com.citadel.registry.CitadelActivities;
 import com.citadel.registry.CitadelMemoryModuleTypes;
+import com.citadel.registry.CitadelSensorTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
@@ -24,7 +25,8 @@ import java.util.Set;
 public class PebbletAi {
     public static final List<SensorType<? extends Sensor<? super Pebblet>>> SENSORS = ImmutableList.of(
             SensorType.NEAREST_LIVING_ENTITIES,
-            SensorType.HURT_BY
+            SensorType.HURT_BY,
+            CitadelSensorTypes.PEBBLET_TARGETING_SENSOR.get()
     );
     public static final List<MemoryModuleType<?>> MEMORIES = ImmutableList.of(
             MemoryModuleType.LOOK_TARGET,
@@ -36,6 +38,7 @@ public class PebbletAi {
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.ATTACK_TARGET,
+            MemoryModuleType.NEAREST_ATTACKABLE,
             CitadelMemoryModuleTypes.ROLL_TARGET.get(),
             CitadelMemoryModuleTypes.ROLL_COOLDOWN.get()
     );
@@ -72,6 +75,7 @@ public class PebbletAi {
 
     private static void initIdleActivity(Brain<Pebblet> brain) {
         var hurtByBehavior = StartAttacking.create(Pebblet::getHurtBy);
+        var attackPlayerBehavior = StartAttacking.create(mob -> brain.getMemory(MemoryModuleType.NEAREST_ATTACKABLE));
 
         var lookAtPlayerBehavior = SetEntityLookTarget.create(EntityType.PLAYER, 8.0f);
 
@@ -84,6 +88,7 @@ public class PebbletAi {
         brain.addActivity(
                 Activity.IDLE,
                 ImmutableList.of(
+                        Pair.of(0, attackPlayerBehavior),
                         Pair.of(1, hurtByBehavior),
                         Pair.of(2, lookAtPlayerBehavior),
                         Pair.of(3, walkOptionsBehavior)
