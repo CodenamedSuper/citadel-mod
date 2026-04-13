@@ -2,11 +2,15 @@ package com.citadel.entity.pebblet;
 
 import com.citadel.entity.pebblet.ai.PebbletAi;
 import com.mojang.serialization.Dynamic;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
@@ -17,6 +21,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,8 +30,10 @@ import java.util.Optional;
 
 public class Pebblet extends PathfinderMob {
     public static final int ROLL_UP_ANIMATION_DURATION = 10;
+    private static final int ROLLING_PARTICLES_COUNT = 30;
 
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(Pebblet.class, EntityDataSerializers.INT);
+
 
     public final AnimationState rollUpAnimationState = new AnimationState();
     public final AnimationState rollOutAnimationState = new AnimationState();
@@ -89,6 +97,8 @@ public class Pebblet extends PathfinderMob {
 
                     this.rollUpAnimationState.start(this.tickCount);
                     this.rollUpAnimationState.fastForward(ROLL_UP_ANIMATION_DURATION, 1.0f);
+
+                    this.clientRollingParticles();
                 }
                 case ROLL_OUT -> {
                     this.rollUpAnimationState.stop();
@@ -98,6 +108,37 @@ public class Pebblet extends PathfinderMob {
             }
         }
         super.tick();
+    }
+
+    private void clientRollingParticles() {
+        if (!this.onGround()) return;
+
+        Vec3 deltaMovement = this.getDeltaMovement();
+        if (deltaMovement.length() < 0.2d) return;
+
+        BlockState groundState = this.getBlockStateOn();
+        if (groundState.getRenderShape() == RenderShape.INVISIBLE) return;
+
+        RandomSource random = this.getRandom();
+
+        Vec3 particleOrigin = this.blockPosition().getBottomCenter();
+        Vec3 horizontalParticleDelta = new Vec3(
+                deltaMovement.x,
+                0,
+                deltaMovement.z
+        ).normalize().scale(-0.2);
+
+        for (int i = 0; i < ROLLING_PARTICLES_COUNT; i++) {
+            this.level().addParticle(
+                    new BlockParticleOption(ParticleTypes.BLOCK, groundState),
+                    particleOrigin.x + Mth.randomBetween(random, -0.5f, 0.5f),
+                    particleOrigin.y,
+                    particleOrigin.z + Mth.randomBetween(random, -0.5f, 0.5f),
+                    horizontalParticleDelta.x,
+                    0.2f,
+                    horizontalParticleDelta.z
+            );
+        }
     }
 
     public Optional<LivingEntity> getHurtBy() {
