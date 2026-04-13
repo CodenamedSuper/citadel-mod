@@ -52,25 +52,13 @@ public class PrepareRollTargetFromAttackTarget extends Behavior<Pebblet> {
 
         if (visibleEntities.contains(target) && owner.getY() >= target.getY() && owner.distanceTo(target) < ROLL_DISTANCE) {
             brain.eraseMemory(MemoryModuleType.WALK_TARGET);
-            this.determineRollTarget(owner, target, level);
+
+            this.calculateRollTargetPosition(owner, target, level).ifPresent(rollPos ->
+                    brain.setMemory(CitadelMemoryModuleTypes.ROLL_TARGET.get(), rollPos)
+            );
         }
         else {
             BehaviorUtils.setWalkAndLookTargetMemories(owner, target, 2.0f, 0);
-        }
-    }
-
-    private void determineRollTarget(Pebblet owner, LivingEntity target, ServerLevel level) {
-        var brain = owner.getBrain();
-
-        Optional<NearestVisibleLivingEntities> nearestVisibleLivingEntitiesMemory = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
-        if (nearestVisibleLivingEntitiesMemory.isEmpty()) return;
-
-        NearestVisibleLivingEntities visibleEntities = nearestVisibleLivingEntitiesMemory.get();
-
-        if (visibleEntities.contains(target)) {
-            this.calculateRollTargetPosition(owner, target, level).ifPresent(rollPos -> {
-                brain.setMemory(CitadelMemoryModuleTypes.ROLL_TARGET.get(), rollPos);
-            });
         }
     }
 
