@@ -199,12 +199,16 @@ public class Pebblet extends PathfinderMob {
     }
 
     public static boolean checkPebbletSpawnRules(EntityType<Pebblet> entityType, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        if (spawnType == MobSpawnType.TRIAL_SPAWNER) {
+            return true;
+        }
+
         if (pos.getY() >= level.getSeaLevel()) {
             return false;
         }
 
         int maxLocalRawBrightness = level.getMaxLocalRawBrightness(pos);
 
-        return maxLocalRawBrightness > random.nextInt(4) ? false : checkMobSpawnRules(entityType, level, spawnType, pos, random);
+        return maxLocalRawBrightness <= random.nextInt(4) && checkMobSpawnRules(entityType, level, spawnType, pos, random);
     }
 }
