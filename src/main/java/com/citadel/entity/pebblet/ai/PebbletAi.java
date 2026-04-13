@@ -1,11 +1,7 @@
 package com.citadel.entity.pebblet.ai;
 
 import com.citadel.entity.pebblet.Pebblet;
-import com.citadel.entity.pebblet.PebbletState;
-import com.citadel.entity.pebblet.ai.behavior.SetRollTargetFromAttackTarget;
-import com.citadel.entity.pebblet.ai.behavior.RollOut;
-import com.citadel.entity.pebblet.ai.behavior.RollTowardsTarget;
-import com.citadel.entity.pebblet.ai.behavior.RollUp;
+import com.citadel.entity.pebblet.ai.behavior.*;
 import com.citadel.registry.CitadelActivities;
 import com.citadel.registry.CitadelMemoryModuleTypes;
 import com.google.common.collect.ImmutableList;
@@ -100,7 +96,8 @@ public class PebbletAi {
                 Activity.FIGHT,
                 ImmutableList.of(
                         Pair.of(1, new SetRollTargetFromAttackTarget()),
-                        Pair.of(2, StopAttackingIfTargetInvalid.create())
+                        Pair.of(2, new MoveTowardsAttackTargetIfOutsideRollDistance()),
+                        Pair.of(3, StopAttackingIfTargetInvalid.create())
                 ),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT)

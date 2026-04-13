@@ -46,7 +46,7 @@ public class RollTowardsTarget extends Behavior<Pebblet> {
 
         brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(
                 rollPos,
-                3.0f,
+                5.0f,
                 0
         ));
         this.knockbackDir = new Vec3(entityPos.x - rollPos.x, 0.0f, entityPos.z - rollPos.z).normalize();
@@ -68,7 +68,7 @@ public class RollTowardsTarget extends Behavior<Pebblet> {
                 LivingEntity.class,
                 TargetingConditions.forNonCombat(),
                 owner,
-                owner.getBoundingBox()
+                owner.getBoundingBox().inflate(0.5f)
         );
 
         for (LivingEntity entity : collidingEntities) {

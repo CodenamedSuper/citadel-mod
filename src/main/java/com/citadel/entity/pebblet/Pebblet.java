@@ -24,7 +24,6 @@ import java.util.Optional;
 
 public class Pebblet extends PathfinderMob {
     public static final int ROLL_UP_ANIMATION_DURATION = 10;
-    public static final float FRICTION_MODIFIER = 0.75f;
 
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(Pebblet.class, EntityDataSerializers.INT);
 
