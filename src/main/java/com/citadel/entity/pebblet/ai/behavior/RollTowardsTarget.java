@@ -73,6 +73,7 @@ public class RollTowardsTarget extends Behavior<Pebblet> {
 
         if (!collidingEntities.isEmpty()) {
             LivingEntity entity = collidingEntities.getFirst();
+            if (entity instanceof Pebblet) return;
 
             DamageSource damageSource = level.damageSources().mobAttack(owner);
 

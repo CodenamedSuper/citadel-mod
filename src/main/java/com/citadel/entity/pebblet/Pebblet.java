@@ -191,9 +191,9 @@ public class Pebblet extends PathfinderMob {
 
     public static AttributeSupplier.Builder createPebbletAttributes() {
         return createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 20.0d)
+                .add(Attributes.MAX_HEALTH, 16.0d)
                 .add(Attributes.MOVEMENT_SPEED, 0.12f)
-                .add(Attributes.ATTACK_DAMAGE, 6)
+                .add(Attributes.ATTACK_DAMAGE, 4)
                 .add(Attributes.ARMOR, 2)
                 .add(Attributes.FOLLOW_RANGE, 32);
     }
