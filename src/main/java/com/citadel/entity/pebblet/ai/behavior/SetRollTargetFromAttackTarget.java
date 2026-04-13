@@ -25,7 +25,7 @@ public class SetRollTargetFromAttackTarget extends Behavior<Pebblet> {
 
     public SetRollTargetFromAttackTarget() {
         super(ImmutableMap.of(
-                MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
+                MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
                 MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT,
@@ -43,6 +43,9 @@ public class SetRollTargetFromAttackTarget extends Behavior<Pebblet> {
 
         LivingEntity target = attackTargetMemory.get();
 
+        entity.getNavigation().stop();
+
+        brain.eraseMemory(MemoryModuleType.WALK_TARGET);
         brain.setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(
                 target,
                 true
