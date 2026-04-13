@@ -184,6 +184,11 @@ public class Pebblet extends PathfinderMob {
         DebugPackets.sendEntityBrain(this);
     }
 
+    @Override
+    public boolean canAttackType(EntityType<?> type) {
+        return type == EntityType.PLAYER || type == EntityType.IRON_GOLEM;
+    }
+
     public static AttributeSupplier.Builder createPebbletAttributes() {
         return createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0d)

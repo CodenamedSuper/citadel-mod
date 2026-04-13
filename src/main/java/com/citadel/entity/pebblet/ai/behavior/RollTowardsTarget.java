@@ -71,16 +71,19 @@ public class RollTowardsTarget extends Behavior<Pebblet> {
                 owner.getBoundingBox().inflate(0.5f)
         );
 
-        for (LivingEntity entity : collidingEntities) {
+        if (!collidingEntities.isEmpty()) {
+            LivingEntity entity = collidingEntities.getFirst();
+
             DamageSource damageSource = level.damageSources().mobAttack(owner);
 
             if (entity.hurt(damageSource, (float) owner.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
                 EnchantmentHelper.doPostAttackEffects(level, owner, damageSource);
             }
 
-            float knockbackForce = Mth.clamp(owner.getSpeed(), 0.2f, 3.0f);
+            float knockbackForce = Mth.clamp(owner.getSpeed() * 1.5f, 0.2f, 3.0f);
+            float blockedFactor = entity.isDamageSourceBlocked(level.damageSources().mobAttack(owner)) ? 0.5f : 1.0f;
 
-            entity.knockback(knockbackForce, this.knockbackDir.x, this.knockbackDir.z);
+            entity.knockback(blockedFactor * knockbackForce, this.knockbackDir.x, this.knockbackDir.z);
         }
     }
 

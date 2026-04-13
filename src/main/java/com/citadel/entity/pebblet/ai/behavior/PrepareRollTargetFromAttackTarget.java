@@ -1,5 +1,6 @@
 package com.citadel.entity.pebblet.ai.behavior;
 
+import com.citadel.Citadel;
 import com.citadel.entity.pebblet.Pebblet;
 import com.citadel.registry.CitadelMemoryModuleTypes;
 import com.google.common.collect.ImmutableMap;
@@ -49,7 +50,7 @@ public class PrepareRollTargetFromAttackTarget extends Behavior<Pebblet> {
         LivingEntity target = attackTargetMemory.get();
         NearestVisibleLivingEntities visibleEntities = nearestVisibleLivingEntitiesMemory.get();
 
-        if (visibleEntities.contains(target) && owner.distanceTo(target) < ROLL_DISTANCE) {
+        if (visibleEntities.contains(target) && owner.getY() >= target.getY() && owner.distanceTo(target) < ROLL_DISTANCE) {
             brain.eraseMemory(MemoryModuleType.WALK_TARGET);
             this.determineRollTarget(owner, target, level);
         }
@@ -81,8 +82,8 @@ public class PrepareRollTargetFromAttackTarget extends Behavior<Pebblet> {
         ).normalize();
 
         BlockHitResult result = level.clip(new ClipContext(
-                owner.position(),
-                owner.position().add(direction.scale(ROLL_DISTANCE)),
+                target.position(),
+                target.position().add(direction.scale(ROLL_DISTANCE / 2)),
                 ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.ANY,
                 CollisionContext.empty()
@@ -90,7 +91,7 @@ public class PrepareRollTargetFromAttackTarget extends Behavior<Pebblet> {
 
         BlockPos pos = result.getBlockPos();
 
-        if (!this.isWalkable(owner, pos)) {
+        if (!this.isWalkable(owner, target.blockPosition())) {
             return Optional.empty();
         }
 
