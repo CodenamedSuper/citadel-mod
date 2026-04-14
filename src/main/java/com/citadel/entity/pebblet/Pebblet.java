@@ -19,6 +19,7 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -40,6 +41,8 @@ public class Pebblet extends PathfinderMob {
 
     public Pebblet(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
+
+        this.xpReward = Enemy.XP_REWARD_MEDIUM;
     }
 
     @Override
@@ -186,7 +189,7 @@ public class Pebblet extends PathfinderMob {
 
     @Override
     public boolean canAttackType(EntityType<?> type) {
-        return type == EntityType.PLAYER || type == EntityType.IRON_GOLEM;
+        return type == EntityType.PLAYER;
     }
 
     public static AttributeSupplier.Builder createPebbletAttributes() {

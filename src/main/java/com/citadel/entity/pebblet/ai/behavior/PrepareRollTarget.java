@@ -1,16 +1,13 @@
 package com.citadel.entity.pebblet.ai.behavior;
 
-import com.citadel.Citadel;
 import com.citadel.entity.pebblet.Pebblet;
 import com.citadel.registry.CitadelMemoryModuleTypes;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
@@ -23,10 +20,10 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 
 import java.util.Optional;
 
-public class PrepareRollTargetFromAttackTarget extends Behavior<Pebblet> {
+public class PrepareRollTarget extends Behavior<Pebblet> {
     public static final float ROLL_DISTANCE = 12.0f;
 
-    public PrepareRollTargetFromAttackTarget() {
+    public PrepareRollTarget() {
         super(ImmutableMap.of(
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,

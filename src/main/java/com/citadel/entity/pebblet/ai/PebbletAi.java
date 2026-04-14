@@ -88,7 +88,7 @@ public class PebbletAi {
         brain.addActivityWithConditions(
                 Activity.FIGHT,
                 ImmutableList.of(
-                        Pair.of(0, new PrepareRollTargetFromAttackTarget()),
+                        Pair.of(0, new PrepareRollTarget()),
                         Pair.of(1, StopAttackingIfTargetInvalid.create())
                 ),
                 ImmutableSet.of(

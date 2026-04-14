@@ -83,8 +83,6 @@ public class StructureEvents {
             )) {
                 if (!alias.location().equals(aliasToTarget)) return;
 
-                Citadel.LOGGER.info("Found it :D");
-
                 var newList = ImmutableList.<WeightedEntry.Wrapper<ResourceKey<StructureTemplatePool>>>builder()
                         .addAll(targets.items)
                         .add(new WeightedEntry.Wrapper<>(

@@ -1,6 +1,5 @@
 package com.citadel.entity.pebblet.ai.behavior;
 
-import com.citadel.Citadel;
 import com.citadel.entity.pebblet.Pebblet;
 import com.citadel.entity.pebblet.PebbletState;
 import com.citadel.registry.CitadelMemoryModuleTypes;
