@@ -1,5 +1,6 @@
 package com.citadel.entity.pebblet;
 
+import com.citadel.Citadel;
 import com.citadel.entity.pebblet.ai.PebbletAi;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
@@ -10,16 +11,21 @@ import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -31,13 +37,24 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class Pebblet extends PathfinderMob {
+    public static final ResourceLocation ROLL_STEP_HEIGHT_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            Citadel.MOD_ID,
+            "roll_step_height"
+    );
+    public static final AttributeModifier ROLL_STEP_HEIGHT_MODIFIER = new AttributeModifier(
+            ROLL_STEP_HEIGHT_MODIFIER_ID,
+            1.0f,
+            AttributeModifier.Operation.ADD_VALUE
+    );
     public static final int ROLL_UP_ANIMATION_DURATION = 10;
-    private static final int ROLLING_PARTICLES_COUNT = 30;
+    public static final int ROLLING_PARTICLES_COUNT = 30;
 
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(Pebblet.class, EntityDataSerializers.INT);
 
     public final AnimationState rollUpAnimationState = new AnimationState();
     public final AnimationState rollOutAnimationState = new AnimationState();
+
+    private boolean friendly = false;
 
     public Pebblet(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -57,6 +74,7 @@ public class Pebblet extends PathfinderMob {
         super.addAdditionalSaveData(compound);
 
         compound.putInt("state", this.getState().getId());
+        compound.putBoolean("friendly", this.friendly);
     }
 
     @Override
@@ -64,8 +82,9 @@ public class Pebblet extends PathfinderMob {
         super.readAdditionalSaveData(compound);
 
         PebbletState state = PebbletState.BY_ID.apply(compound.getInt("state"));
-
         this.setState(state);
+
+        this.setFriendly(compound.getBoolean("friendly"));
     }
 
     @Override
@@ -121,7 +140,24 @@ public class Pebblet extends PathfinderMob {
                 }
             }
         }
+        else {
+            this.handleStepModifier();
+        }
+
         super.tick();
+    }
+
+    private void handleStepModifier() {
+        AttributeInstance stepHeightAttribute = this.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeightAttribute == null) return;
+
+        if (this.getState() == PebbletState.ROLL && !stepHeightAttribute.hasModifier(ROLL_STEP_HEIGHT_MODIFIER_ID)) {
+            stepHeightAttribute.addTransientModifier(ROLL_STEP_HEIGHT_MODIFIER);
+        }
+
+        if (this.getState() != PebbletState.ROLL && stepHeightAttribute.hasModifier(ROLL_STEP_HEIGHT_MODIFIER_ID)) {
+            stepHeightAttribute.removeModifier(ROLL_STEP_HEIGHT_MODIFIER_ID);
+        }
     }
 
     private void clientRollingParticles() {
@@ -175,6 +211,14 @@ public class Pebblet extends PathfinderMob {
         this.entityData.set(STATE, state.getId());
     }
 
+    public boolean isFriendly() {
+        return this.friendly;
+    }
+
+    public void setFriendly(boolean friendly) {
+        this.friendly = friendly;
+    }
+
     @Override
     public @Nullable LivingEntity getTarget() {
         return this.getTargetFromBrain();
@@ -188,8 +232,17 @@ public class Pebblet extends PathfinderMob {
     }
 
     @Override
-    public boolean canAttackType(EntityType<?> type) {
-        return type == EntityType.PLAYER;
+    public boolean canAttack(LivingEntity target) {
+        if (target instanceof Player) {
+            if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
+                return false;
+            }
+            return !this.isFriendly();
+        }
+        if (target instanceof Enemy) {
+            return this.isFriendly();
+        }
+        return false;
     }
 
     public static AttributeSupplier.Builder createPebbletAttributes() {
