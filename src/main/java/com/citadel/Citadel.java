@@ -25,6 +25,7 @@ public class Citadel {
         CitadelActivities.ACTIVITIES.register(modEventBus);
         CitadelMemoryModuleTypes.MEMORY_MODULE_TYPES.register(modEventBus);
         CitadelSensorTypes.SENSOR_TYPES.register(modEventBus);
+        CitadelCreativeModeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

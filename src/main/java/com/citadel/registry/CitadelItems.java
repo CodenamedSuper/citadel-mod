@@ -10,6 +10,10 @@ import java.util.function.Supplier;
 public class CitadelItems {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.createItems(Citadel.MOD_ID);
 
+    public static final Supplier<Item> ICON = ITEMS.register("icon", () -> new Item(
+            new Item.Properties()
+    ));
+
     public static final Supplier<Item> PEBBLET_SPAWN_EGG = ITEMS.register("pebblet_spawn_egg", () -> new DeferredSpawnEggItem(
             CitadelEntityTypes.PEBBLET,
             11382189,

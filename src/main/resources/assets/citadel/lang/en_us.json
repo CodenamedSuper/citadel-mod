@@ -1,5 +1,8 @@
 {
     "entity.citadel.pebblet": "Pebblet",
 
-    "item.citadel.pebblet_spawn_egg": "Pebblet Spawn Egg"
+    "item.citadel.icon": "Citadeli Insignia",
+    "item.citadel.pebblet_spawn_egg": "Pebblet Spawn Egg",
+
+    "creative_mode_tab.citadel.main": "Citadel"
 }
